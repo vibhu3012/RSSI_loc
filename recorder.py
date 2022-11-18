@@ -3,7 +3,7 @@ import json
 import time
 
 CMD = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
-ROUTE_MODE = False
+ROUTE_MODE = True
 DUP = 5
 
 def get_fp_triad_list():
@@ -12,7 +12,7 @@ def get_fp_triad_list():
     scan_out_lines = str(scan_out).split("\\n")[1:-1]
     triad_list = []
     for l in scan_out_lines:
-        # print(l)
+        print(l)
         indexOfFirstComma = l.find(":")
         indexOfMAC = indexOfFirstComma - 2
         name = l[:indexOfMAC - 1].strip()
@@ -43,7 +43,7 @@ def json_package(locId):
     return json.dumps(one_record)
 
 def main():
-    devName = "mac_air_m1"
+    devName = "mba"
     secId = input("which section you are at : ").replace(" ", "")
     fileName = devName + "_" + str(secId) + ".json"
     locId = input("what is your current location : ")
