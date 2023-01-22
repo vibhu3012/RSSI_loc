@@ -35,7 +35,12 @@ def json_package(locId, d):
             "fingerprint" : [[Triad], [Triad], ... , [Triad]],
         } * N lines
     """
-    readingAP = get_fp_triad_list()
+    fail_counter = 5
+    while fail_counter > 0:
+        readingAP = get_fp_triad_list()
+        if len(readingAP) > 0:
+            break
+        fail_counter -= 1
     one_record = {
         "location" : locId,
         "direction" : d,
