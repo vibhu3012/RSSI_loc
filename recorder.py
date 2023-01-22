@@ -3,8 +3,10 @@ import json
 import time
 
 CMD = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
-ROUTE_MODE = True
+ROUTE_MODE = False
+devName = "mba"
 DUP = 5
+direction = ["North", "East", "South", "West"]
 
 def get_fp_triad_list():
     scan_cmd = subprocess.Popen(['sudo', CMD, '-s'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -22,7 +24,7 @@ def get_fp_triad_list():
     triad_list.sort(key = lambda x: x[0])
     return triad_list
 
-def json_package(locId):
+def json_package(locId, d):
     """
         file name: sectionId_devName.json 
         NOTICE: It should be a JSON LIST but for the convenience of incremental record, brackets are eliminated.
@@ -36,6 +38,7 @@ def json_package(locId):
     readingAP = get_fp_triad_list()
     one_record = {
         "location" : locId,
+        "direction" : d,
         "timestamp" : int(time.time()),
         "counter" : len(readingAP),
         "fingerprint" : readingAP
@@ -43,18 +46,18 @@ def json_package(locId):
     return json.dumps(one_record)
 
 def main():
-    devName = "mba"
-    secId = input("which section you are at : ").replace(" ", "")
+    secId = input("which room you are at : ").replace(" ", "")
     fileName = devName + "_" + str(secId) + ".json"
     locId = input("what is your current location : ")
     while locId:
         print("[normal mode] start collecting sample#{}.".format(locId))
         with open(fileName, "a+") as f:
-            if DUP > 0:
-                for i in range(DUP):
-                    f.write(json_package(str(locId)) + "\n")
-            else:
-                f.write(json_package(str(locId)) + "\n")
+            for d in direction:
+                if DUP > 0:
+                    for i in range(DUP):
+                        f.write(json_package(str(locId), d) + "\n")
+                else:
+                    f.write(json_package(str(locId), d) + "\n")
         print("[normal mode] sample#{} collected.".format(locId))
         locId = input("what is your current location : ")
 
@@ -67,11 +70,12 @@ def route_mode():
     for locId in range(totalCtr):
         print("[route mode] start collecting sample#{}.".format(locId))
         with open(fileName, "a+") as f:
-            if DUP > 0:
-                for i in range(DUP):
-                    f.write(json_package(str(locId)) + "\n")
-            else:
-                f.write(json_package(str(locId)) + "\n")
+            for d in direction:
+                if DUP > 0:
+                    for i in range(DUP):
+                        f.write(json_package(str(locId), d) + "\n")
+                else:
+                    f.write(json_package(str(locId), d) + "\n")
         print("[route mode] sample#{} has been collected, go to the next spot with in {} seconds.".format(locId, interval))
         time.sleep(interval)
 
