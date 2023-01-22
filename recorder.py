@@ -53,6 +53,7 @@ def main():
         print("[normal mode] start collecting sample#{}.".format(locId))
         with open(fileName, "a+") as f:
             for d in direction:
+                _ = input(f"Please Face {d}! Press Enter To Continue")
                 if DUP > 0:
                     for i in range(DUP):
                         f.write(json_package(str(locId), d) + "\n")
@@ -71,6 +72,7 @@ def route_mode():
         print("[route mode] start collecting sample#{}.".format(locId))
         with open(fileName, "a+") as f:
             for d in direction:
+                _ = input(f"Please Face {d}! Press Enter To Continue")
                 if DUP > 0:
                     for i in range(DUP):
                         f.write(json_package(str(locId), d) + "\n")
