@@ -3,7 +3,7 @@ import json
 import time
 import re
 
-CMD = "/usr/sbin/iwlist"
+CMD = "/usr/sbin/iw"
 DEVICE = "wlp3s0"
 ROUTE_MODE = False
 DUP = 5
@@ -14,13 +14,13 @@ direction = ["North", "East", "South", "West"]
 def get_fp_triad_list():
     scan_cmd = subprocess.Popen(['sudo', CMD, DEVICE, 'scan'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     scan_out, _ = scan_cmd.communicate()
-    scan_out_lines = re.split(r'Cell \d+ - ', str(scan_out))[1:]
+    scan_out_lines = re.split(r'Supported rates', str(scan_out))[:-1]
     triad_list = []
     for l in scan_out_lines:
-        mac = re.search('Address: (([0-9a-fA-F]:?){12})', l).group(1)
-        rssi = re.search('Signal level=(.+) dBm', l).group(1)
+        mac = re.search('BSS (([0-9a-fA-F]:?){12})', l).group(1)
+        rssi = str(int(float(re.search('signal: (.+) dBm', l).group(1))))
         triad_list.append(["", mac, rssi])
-    print("Acquire list!")
+    print(triad_list)
     triad_list.sort(key = lambda x: x[0])
     return triad_list
 
