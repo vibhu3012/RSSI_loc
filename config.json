@@ -1,0 +1,16 @@
+{
+    "PLATFORM" : "macos",
+
+    "SRC_PATH" : "preprocess/",
+    "RP_PKL" : "RPs.pkl",
+    "RP_META" : "meta.json",
+    "RP_LOCATION" : "location.json",
+    "PRE_CLUSTERED" : "cluster.json",
+    
+    "SAMPLE_INTERVAL" : 0,
+    "LOC_INTERVAL": 1,
+
+    "RP_CLUSTER_ALG" : "kmeans",
+    "AP_SELECT_ALG" : "fisher",
+    "DISCRETE_ALG" : "kde"
+}
