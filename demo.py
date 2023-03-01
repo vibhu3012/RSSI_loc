@@ -83,5 +83,6 @@ while True:
     # location = est2loc(est=estimation, loc_ref=loc)
     location = est2loc(est=estimation, loc_ref=roi_rps)
     print("[{}] current location is {}".format(time.strftime("%H:%M:%S", timestamp), location))
+    time.sleep(conf["LOC_INTERVAL"])
 
 # eof pipeline ===========================================
