@@ -2,7 +2,7 @@ import sys, json, pickle, time
 from threading import Thread, Lock
 
 from rssicore.RPcluster import cluster, neighbors
-from rssicore.APselector import selector, aligner, gen_filter
+from rssicore.APselector import gen_filter, aligner, apply_filter
 from rssicore.Sampler import sampler
 from rssicore.Discrete import estimator, est2loc
 
@@ -70,13 +70,13 @@ while True:
                         enum=c_enumerate)
 
     # binary filter
-    ap_filter = selector(rssi=rssi,
+    ap_filter = gen_filter(rssi=rssi,
                         roi=roi_rps,
                         alg=conf["AP_SELECT_ALG"])
 
     # shrank the aps
-    rssi = gen_filter(rssi, ap_filter)
-    roi_rps = gen_filter(roi_rps, ap_filter)
+    rssi = apply_filter(rssi, ap_filter)
+    roi_rps = apply_filter(roi_rps, ap_filter)
 
     # localization job
     estimation = estimator(rssi=rssi, ref=roi_rps, alg=conf["DISCRETE_ALG"])
