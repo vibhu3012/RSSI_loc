@@ -1,7 +1,7 @@
 import sys, json, pickle, time
 from threading import Thread, Lock
 
-from rssicore.RPcluster import cluster, neighbors
+from rssicore.RPcluster import cluster, coarse_loc
 from rssicore.APselector import gen_filter, aligner, apply_filter
 from rssicore.Sampler import sampler
 from rssicore.Discrete import estimator, est2loc
@@ -24,19 +24,11 @@ with open(conf["SRC_PATH"] + conf["RP_PKL"], "rb") as rpf:
 
 try:
     with open(conf["SRC_PATH"] + conf["PRE_CLUSTERED"], "r") as clf:
-        c_json = json.load(clf)
-        c_label = c_json["label"] # label is a long list of cluster id
-        c_enumerate = c_json["enumerate"] # list is a dict of members of each cluster
-        c_head = c_json["head"] # head is a dict of head index of each cluster
+        clustering = json.load(clf)
 except FileNotFoundError:
-    c_label, c_enumerate, c_head = cluster(all_rps, alg=conf["RP_CLUSTER_ALG"])
-    c_json = {
-        "label" : c_label,
-        "enumerate" : c_enumerate,
-        "head" : c_head,
-    }
+    clustering = cluster(all_rps, alg=conf["RP_CLUSTER_ALG"])
     with open(conf["SRC_PATH"] + conf["PRE_CLUSTERED"], "w+") as clf:
-        json.dump(c_json, clf)
+        json.dump(clustering, clf)
 
 rssi_buf = None
 timestamp = None
@@ -64,25 +56,26 @@ while True:
     rssi = aligner(rssi_buf, all_ap)
 
     # subset of all_rps
-    roi_rps = neighbors(rssi=rssi, 
-                        all=all_rps,
-                        heads=c_head,
-                        enum=c_enumerate)
+    roi_rps = coarse_loc(rssi=rssi, 
+                        rps=all_rps,
+                        heads=clustering.keys(),
+                        members=clustering)
 
     # binary filter
     ap_filter = gen_filter(rssi=rssi,
-                        roi=roi_rps,
+                        rps=roi_rps,
                         alg=conf["AP_SELECT_ALG"])
 
     # shrank the aps
-    rssi = apply_filter(rssi, ap_filter)
-    roi_rps = apply_filter(roi_rps, ap_filter)
+    apply_filter(rssi, ap_filter)
+    apply_filter(roi_rps, ap_filter)
 
     # localization job
-    estimation = estimator(rssi=rssi, ref=roi_rps, alg=conf["DISCRETE_ALG"])
+    estimation = estimator(rssi=rssi, rps=roi_rps.values(), alg=conf["DISCRETE_ALG"])
     # location = est2loc(est=estimation, loc_ref=loc)
-    location = est2loc(est=estimation, loc_ref=roi_rps)
+    location = est2loc(est=estimation, loc_ref=roi_rps.keys())
     print("[{}] current location is {}".format(time.strftime("%H:%M:%S", timestamp), location))
+    
     time.sleep(conf["LOC_INTERVAL"])
 
 # eof pipeline ===========================================

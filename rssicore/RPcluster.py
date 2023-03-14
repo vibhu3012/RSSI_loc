@@ -1,6 +1,7 @@
 
-def cluster(all:dict, alg:str) -> tuple(list, dict, list):
-    pass
+def cluster(rps:dict, alg:str) -> tuple(dict, list):
+    print("not implemented")
+    raise NotImplementedError
 
-def neighbors(rssi:list, all:dict, heads:list, enum:dict) -> dict:
+def coarse_loc(rssi:list, rps:dict, heads:list, members:dict) -> dict:
     pass

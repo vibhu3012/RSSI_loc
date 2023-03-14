@@ -12,5 +12,5 @@
 
     "RP_CLUSTER_ALG" : "kmeans",
     "AP_SELECT_ALG" : "fisher",
-    "DISCRETE_ALG" : "kde"
+    "DISCRETE_ALG" : "prob"
 }
