@@ -1,8 +1,16 @@
-def gen_filter(rssi:list, rps:dict, alg:str) -> list:
-    filter = [r!= None for r in rssi]
-    return filter   # naive rssi based ap filter
+def genFilter(rssi:list, rps:dict, alg:str) -> list:
+    if alg == "naive":
+        return naiveAPFilter(rssi)
+    raise ValueError
 
-def apply_filter(rssi, filter:list): 
+
+def naiveAPFilter(rssi:list):
+    '''
+    naive rssi based ap filter
+    '''
+    return [r!= None for r in rssi]
+
+def applyFilter(rssi, filter:list): 
     # onsite change
     if type(rssi) == list:
         ret = []
@@ -13,7 +21,7 @@ def apply_filter(rssi, filter:list):
         return
     if type(rssi) == dict:
         for k in rssi.keys():
-            apply_filter(rssi[k])
+            applyFilter(rssi[k], filter)
         return
     raise TypeError
 

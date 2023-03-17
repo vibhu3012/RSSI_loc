@@ -1,5 +1,5 @@
 {
-    "PLATFORM" : "macos",
+    "PLATFORM" : "simulation",
 
     "SRC_PATH" : "preprocess/",
     "RP_PKL" : "RPs.pkl",
@@ -8,9 +8,9 @@
     "PRE_CLUSTERED" : "cluster.json",
     
     "SAMPLE_INTERVAL" : 0,
-    "LOC_INTERVAL": 1,
+    "LOC_INTERVAL": 3,
 
     "RP_CLUSTER_ALG" : "kmeans",
-    "AP_SELECT_ALG" : "fisher",
-    "DISCRETE_ALG" : "prob"
+    "AP_SELECT_ALG" : "naive",
+    "DISCRETE_ALG" : "knn"
 }

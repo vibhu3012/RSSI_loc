@@ -1,4 +1,5 @@
-from Utils import ENCODING, distance
+from rssicore import * # logging
+from rssicore.Utils import ENCODING, distance
 
 def estimator(rssi:list, rps:list, alg:str) -> list:
     """
@@ -20,7 +21,7 @@ def KNN(rssi:list, rps:list, k:int = 4) -> list:
         dist.append(distance(rssi, rp))
     dist = list(enumerate(dist))
     dist.sort(key = lambda x: x[1])
-
+    
     for i in range(k):
         ret[dist[i][0]] = 1/k
 
