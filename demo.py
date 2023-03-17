@@ -33,15 +33,18 @@ except FileNotFoundError:
         json.dump(clustering, clf)
 
 rssi_buf = None
+rssi_label = None
 timestamp = None
 
 def rssi_sampler():
     global rssi_buf
+    global rssi_label
     global timestamp
     while True:
-        cur_rssi = sampler(conf["PLATFORM"], "raw_data/2023_1/Intel_3165_C5.json")
+        cur_rssi, label = sampler(conf["PLATFORM"], "raw_data/2023_1/Intel_3165_C5.json")
         if len(cur_rssi) > 0:
             rssi_buf = cur_rssi
+            rssi_label = label
             timestamp = time.localtime()
         time.sleep(conf["SAMPLE_INTERVAL"])
 
@@ -56,7 +59,7 @@ while True:
         continue
 
     # rssi in the format of meta.json
-    info("fetched rssi: " + str(rssi_buf))
+    info("fetched: " + str(rssi_label.split("_")[-1]))
     rssi = aligner(rssi_buf, all_ap)
 
     # subset of all_rps
@@ -77,8 +80,9 @@ while True:
     estimation = estimator(rssi=rssi, rps=roi_rps.values(), alg=conf["DISCRETE_ALG"])
     # location = est2loc(est=estimation, loc_ref=loc)
     location = est2loc(est=estimation, loc_ref=roi_rps.keys())
-    print("[{}] current location is {}".format(time.strftime("%H:%M:%S", timestamp), location))
-    
+    # info("location@{} is {}".format(time.strftime("%H:%M:%S", timestamp), location))
+    info("location: {}".format(location))
+
     time.sleep(conf["LOC_INTERVAL"])
 
 # eof pipeline ===========================================

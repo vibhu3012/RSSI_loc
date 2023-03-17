@@ -24,6 +24,7 @@ def KNN(rssi:list, rps:list, k:int = 4) -> list:
     
     for i in range(k):
         ret[dist[i][0]] = 1/k
+    return ret
 
 def prob(rssi:list, rps:list, sigma:float = 2) -> list:
     print("not implemented")
@@ -31,7 +32,9 @@ def prob(rssi:list, rps:list, sigma:float = 2) -> list:
 
 def est2loc(est:list, loc_ref:list):
     assert len(est) == len(loc_ref)
-    locProb = zip(loc_ref, est)
+    locProb = list(zip(loc_ref, est))
     locProb.sort(reverse = True,
                  key = lambda x: x[1])
-    return " ".join(locProb[:5][0])
+    # debug(locProb)
+    genPrint = lambda x: "{}({})".format(x[0], x[1])
+    return " ".join([genPrint(x) for x in locProb[:5]])

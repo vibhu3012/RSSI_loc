@@ -1,8 +1,9 @@
+from rssicore import *
 import subprocess, json, random
 
 CMD = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
 
-def sampler(platform:str, file=None)->dict:
+def sampler(platform:str, file=None):
     if platform == "macos":
         return macSampler()
     if platform == "simulation":
@@ -24,13 +25,14 @@ def macSampler():
         triad_list[mac] = rssi
     return triad_list
 
-def fileSampler(file):
+def fileSampler(file:str):
     with open(file, "rb") as f:
         raws = f.readlines()
         random.seed()
-        oneline = random.choice(raws)
-    fp = json.loads(oneline)["fingerprint"]
+        oneline = json.loads(random.choice(raws))
+    fp = oneline["fingerprint"]
     ret = {}
     for r in fp:
         ret[r[1]] = r[2]
-    return ret
+    id = ".".join([file.replace(".json", ""), oneline["location"], oneline["direction"].lower(), str(oneline["timestamp"])])
+    return ret, id

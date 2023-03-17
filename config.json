@@ -7,7 +7,7 @@
     "RP_LOCATION" : "location.json",
     "PRE_CLUSTERED" : "cluster.json",
     
-    "SAMPLE_INTERVAL" : 0,
+    "SAMPLE_INTERVAL" : 3,
     "LOC_INTERVAL": 3,
 
     "RP_CLUSTER_ALG" : "kmeans",
