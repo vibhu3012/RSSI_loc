@@ -1,8 +1,8 @@
+from rssicore.Utils import ENCODING
 def genFilter(rssi:list, rps:dict, alg:str) -> list:
-    if alg == "naive":
+    if alg == ENCODING.ALG.NAIVE:
         return naiveAPFilter(rssi)
     raise ValueError
-
 
 def naiveAPFilter(rssi:list):
     '''

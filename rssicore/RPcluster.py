@@ -1,7 +1,9 @@
+from rssicore.Utils import ENCODING
 
 def cluster(rps:dict, alg:str) -> dict:
-    # TODO 
-    return monoClustering(rps)
+    if alg == ENCODING.ALG.MONO:
+        return monoClustering(rps)
+    raise ValueError
 
 def monoClustering(rps) -> dict:
     '''
@@ -12,11 +14,12 @@ def monoClustering(rps) -> dict:
     return {head : member}
 
 
-def coarseLoc(rssi:list, rps:dict, clustering:dict) -> dict:
-    # TODO
-    return coarseLocFull(rssi, rps)
+def coarseLoc(rssi:list, rps:dict, clustering:dict, alg:str) -> dict:
+    if alg == ENCODING.ALG.USEALL:
+        return useall(rps)
+    raise ValueError
 
-def coarseLocFull(rssi, rps) -> dict:
+def useall(rps) -> dict:
     '''
     use all rps
     '''

@@ -11,20 +11,29 @@ class ENCODING:
 
     class ALG:
 
+        # clustering algorithm
+        MONO = "mono"
+
+        # coarse localization
+        USEALL = "useall"
+
         # estimator
         KNN = "knn"
         PROB = "prob"
         KMEANS = "kmeans"
+        LASSO = "lasso"
 
         # AP selector
         NAIVE = "naive"
         FISHER = "fisher"
 
+def wrapper(x):
+    return int(x) if x else -100
+
 def distance(a, b):
     assert len(a) == len(b)
     # debug("distance from " + str(a))
     # debug("to " + str(b))
-    wrapper = lambda x: int(x) if x else -100
     ret = 0
     for i, j in zip(a,b):
         ret += (wrapper(i) - wrapper(j)) ** 2

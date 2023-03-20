@@ -1,7 +1,11 @@
 from rssicore import * # logging
-from rssicore.Utils import ENCODING, distance
+from rssicore.Utils import ENCODING, distance, wrapper
 
-def estimator(rssi:list, rps:list, alg:str) -> list:
+from scipy.stats import norm
+import scipy.stats as stats
+from math import log
+
+def estimator(rssi:list, rps:dict, alg:str) -> tuple[list, list]:
     """
     : return a list with the same length as ref
     : the probability of prediction estimation
@@ -11,22 +15,84 @@ def estimator(rssi:list, rps:list, alg:str) -> list:
         return KNN(rssi, rps)
     if alg == ENCODING.ALG.PROB:
         return prob(rssi, rps)
+    if alg == ENCODING.ALG.LASSO:
+        return lasso(rssi, rps)
     raise ValueError
 
-def KNN(rssi:list, rps:list, k:int = 4) -> list:
-    ret = [0.] * len(rps)
+def merge(rps):
+    # merge the last DoF 
+    merged = {}
+    getLoc = lambda x: ".".join(x.split(".")[0:3])
+    for label in rps.keys():
+        loc = getLoc(label)
+        rssi_value = rps[label]
+        if loc in merged.keys():
+            assert len(merged[loc]) == len(rssi_value)
+            for ap, rv in zip(merged[loc], rssi_value):
+                ap.append(rv)
+            continue
+        else:
+            merged[loc] = []
+            for ap in rssi_value:
+                merged[loc].append([ap])
+    return merged
+
+def KNN(rssi:list, rps:dict, k:int = 4) -> tuple[list, list]:
+
+    # merge the last DoF 
+    merged = merge(rps)
+
+    ret = [0.] * len(merged)
+
+    avg = lambda l: sum([wrapper(i) for i in l]) / len(l)
+    avgWrapper = lambda x: [avg(ap) for ap in x]
 
     dist = []
-    for rp in rps:
-        dist.append(distance(rssi, rp))
+    for rp in merged.values():
+        dist.append(distance(rssi, avgWrapper(rp)))
     dist = list(enumerate(dist))
     dist.sort(key = lambda x: x[1])
     
     for i in range(k):
         ret[dist[i][0]] = 1/k
-    return ret
+    return ret, merged.keys()
 
-def prob(rssi:list, rps:list, sigma:float = 2) -> list:
+def prob(rssi:list, rps:dict) -> tuple[list,list]:
+
+    # merge the last DoF 
+    merged = merge(rps)
+
+    # first = list(merged.keys())[0]
+    # debug(merged[first])
+    for loc, aps in merged.items():
+        new_aps = []
+        for ap in aps:
+            float_list = list(map(wrapper, ap))
+            mu, sigma = norm.fit(float_list)
+            new_aps.append( (mu, sigma) )
+        merged[loc] = new_aps
+    # debug(merged[first])
+
+    sigmaWrapper = lambda x: max(x, 1e-2)
+    # probAP = lambda x, mu, sigma: stats.norm(mu, sigmaWrapper(sigma)).pdf(x)
+    probAP_log = lambda x, mu, sigma: \
+        - log(sigmaWrapper(sigma)) - 1/2 * ((x-mu)/sigmaWrapper(sigma)) ** 2
+    scores = []
+    scores_sum = 0.
+    for meas in merged.values():
+        score = 1.
+        for rv, ap_mea in zip(rssi, meas):
+            score += probAP_log(wrapper(rv), ap_mea[0], ap_mea[1])
+        scores.append(score)
+        scores_sum += score
+
+    # unified = []
+    # for s in scores:
+    #     unified.append(s/scores_sum)
+
+    return scores, merged.keys()
+
+def lasso(rssi:list, rps:dict) -> tuple[list, list]:
     print("not implemented")
     raise NotImplementedError
 
@@ -37,4 +103,4 @@ def est2loc(est:list, loc_ref:list):
                  key = lambda x: x[1])
     # debug(locProb)
     genPrint = lambda x: "{}({})".format(x[0], x[1])
-    return " ".join([genPrint(x) for x in locProb[:5]])
+    return " ".join([genPrint(x) for x in locProb[:4]])

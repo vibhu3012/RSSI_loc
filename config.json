@@ -7,10 +7,11 @@
     "RP_LOCATION" : "location.json",
     "PRE_CLUSTERED" : "cluster.json",
     
-    "SAMPLE_INTERVAL" : 3,
-    "LOC_INTERVAL": 3,
+    "SAMPLE_INTERVAL" : 0,
+    "LOC_INTERVAL": 2,
 
-    "RP_CLUSTER_ALG" : "kmeans",
+    "RP_CLUSTER_ALG" : "mono",
+    "COARSE_LOC_ALG" : "useall",
     "AP_SELECT_ALG" : "naive",
-    "DISCRETE_ALG" : "knn"
+    "DISCRETE_ALG" : "prob"
 }

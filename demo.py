@@ -41,7 +41,11 @@ def rssi_sampler():
     global rssi_label
     global timestamp
     while True:
-        cur_rssi, label = sampler(conf["PLATFORM"], "raw_data/2023_1/Intel_3165_C5.json")
+        if conf["PLATFORM"] == "simulation":
+            cur_rssi, label = sampler(conf["PLATFORM"], "raw_data/2023_1/Intel_3165_C5.json")
+        else: 
+            cur_rssi = sampler(conf["PLATFORM"], "raw_data/2023_1/Intel_3165_C5.json")
+            label = "{}".format(conf["PLATFORM"])
         if len(cur_rssi) > 0:
             rssi_buf = cur_rssi
             rssi_label = label
@@ -59,13 +63,14 @@ while True:
         continue
 
     # rssi in the format of meta.json
-    info("fetched: " + str(rssi_label.split("_")[-1]))
+    info("fetched: {} @ {}".format(".".join(rssi_label.split("_")[-1].split(".")[:-1]), time.strftime("%H:%M:%S", timestamp)))
     rssi = aligner(rssi_buf, all_ap)
 
     # subset of all_rps
     roi_rps = coarseLoc(rssi=rssi, 
                         rps=all_rps,
-                        clustering=clustering)
+                        clustering=clustering,
+                        alg=conf['COARSE_LOC_ALG'])
 
     # binary filter
     ap_filter = genFilter(rssi=rssi,
@@ -77,9 +82,9 @@ while True:
     applyFilter(roi_rps, ap_filter)
 
     # localization job
-    estimation = estimator(rssi=rssi, rps=roi_rps.values(), alg=conf["DISCRETE_ALG"])
+    estimation, label = estimator(rssi=rssi, rps=roi_rps, alg=conf["DISCRETE_ALG"])
     # location = est2loc(est=estimation, loc_ref=loc)
-    location = est2loc(est=estimation, loc_ref=roi_rps.keys())
+    location = est2loc(est=estimation, loc_ref=label)
     # info("location@{} is {}".format(time.strftime("%H:%M:%S", timestamp), location))
     info("location: {}".format(location))
 
