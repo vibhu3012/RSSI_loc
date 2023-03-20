@@ -6,6 +6,7 @@ from rssicore.RPcluster import cluster, coarseLoc
 from rssicore.APselector import genFilter, aligner, applyFilter
 from rssicore.Sampler import sampler
 from rssicore.Estimate import estimator, est2loc
+from rssicore.Utils import ENCODING
 
 if len(sys.argv) < 2:
     print("plz specify config file")
@@ -42,9 +43,9 @@ def rssi_sampler():
     global timestamp
     while True:
         if conf["PLATFORM"] == "simulation":
-            cur_rssi, label = sampler(conf["PLATFORM"], "raw_data/2023_1/Intel_3165_C5.json")
+            cur_rssi, label = sampler(conf["PLATFORM"], conf["SAMPLE_FILE"])
         else: 
-            cur_rssi = sampler(conf["PLATFORM"], "raw_data/2023_1/Intel_3165_C5.json")
+            cur_rssi = sampler(conf["PLATFORM"])
             label = "{}".format(conf["PLATFORM"])
         if len(cur_rssi) > 0:
             rssi_buf = cur_rssi
@@ -63,8 +64,11 @@ while True:
         continue
 
     # rssi in the format of meta.json
-    info("fetched: {} @ {}".format(".".join(rssi_label.split("_")[-1].split(".")[:-1]), time.strftime("%H:%M:%S", timestamp)))
-    rssi = aligner(rssi_buf, all_ap)
+    info("fetched label: {} @ {}".format(rssi_label, time.strftime("%H:%M:%S", timestamp)))
+    if conf["PLATFORM"] != "simulation" :
+        rssi = aligner(rssi_buf, all_ap)
+    else:
+        rssi = rssi_buf # no need to align when use simulation
 
     # subset of all_rps
     roi_rps = coarseLoc(rssi=rssi, 
@@ -81,12 +85,19 @@ while True:
     applyFilter(rssi, ap_filter)
     applyFilter(roi_rps, ap_filter)
 
-    # localization job
-    estimation, label = estimator(rssi=rssi, rps=roi_rps, alg=conf["DISCRETE_ALG"])
-    # location = est2loc(est=estimation, loc_ref=loc)
-    location = est2loc(est=estimation, loc_ref=label)
-    # info("location@{} is {}".format(time.strftime("%H:%M:%S", timestamp), location))
-    info("location: {}".format(location))
+    def runEstimation(alg):
+        # localization job
+        estimation, label = estimator(rssi=rssi, rps=roi_rps, alg=alg)
+        # location = est2loc(est=estimation, loc_ref=loc)
+        location = est2loc(est=estimation, loc_ref=label)
+        # info("location@{} is {}".format(time.strftime("%H:%M:%S", timestamp), location))
+        info("predict ({}): {}".format(alg, location))
+    
+    if conf["DISCRETE_ALG"] == "all" :
+        runEstimation(ENCODING.ALG.KNN)
+        runEstimation(ENCODING.ALG.PROB)
+    else:
+        runEstimation(conf["DISCRETE_ALG"])
 
     time.sleep(conf["LOC_INTERVAL"])
 

@@ -3,7 +3,7 @@ from rssicore.Utils import ENCODING, distance, wrapper
 
 from scipy.stats import norm
 import scipy.stats as stats
-from math import log
+from math import log, exp
 
 def estimator(rssi:list, rps:dict, alg:str) -> tuple[list, list]:
     """
@@ -42,20 +42,15 @@ def KNN(rssi:list, rps:dict, k:int = 4) -> tuple[list, list]:
     # merge the last DoF 
     merged = merge(rps)
 
-    ret = [0.] * len(merged)
-
     avg = lambda l: sum([wrapper(i) for i in l]) / len(l)
     avgWrapper = lambda x: [avg(ap) for ap in x]
 
-    dist = []
-    for rp in merged.values():
-        dist.append(distance(rssi, avgWrapper(rp)))
-    dist = list(enumerate(dist))
-    dist.sort(key = lambda x: x[1])
-    
-    for i in range(k):
-        ret[dist[i][0]] = 1/k
-    return ret, merged.keys()
+    dist = {}
+    for loc, rp in merged.items():
+        # dist[loc] = 1 / (distance(rssi, avgWrapper(rp)) + 1e-2)
+        dist[loc] = - distance(rssi, avgWrapper(rp))
+
+    return dist.values(), dist.keys()
 
 def prob(rssi:list, rps:dict) -> tuple[list,list]:
 
@@ -73,23 +68,28 @@ def prob(rssi:list, rps:dict) -> tuple[list,list]:
         merged[loc] = new_aps
     # debug(merged[first])
 
-    sigmaWrapper = lambda x: max(x, 1e-2)
+    sigmaWrapper = lambda x: max(x, 1e-1)
     # probAP = lambda x, mu, sigma: stats.norm(mu, sigmaWrapper(sigma)).pdf(x)
     probAP_log = lambda x, mu, sigma: \
         - log(sigmaWrapper(sigma)) - 1/2 * ((x-mu)/sigmaWrapper(sigma)) ** 2
     scores = []
-    scores_sum = 0.
     for meas in merged.values():
-        score = 1.
+        score = 0.
         for rv, ap_mea in zip(rssi, meas):
             score += probAP_log(wrapper(rv), ap_mea[0], ap_mea[1])
-        scores.append(score)
-        scores_sum += score
+        scores.append(score/1e4)
 
+    # value difference toolarge
     # unified = []
-    # for s in scores:
-    #     unified.append(s/scores_sum)
-
+    # for si in scores:
+    #     sum = 0.
+    #     try:
+    #         for sj in scores: 
+    #             sum += exp(sj-si)
+    #     except OverflowError:
+    #         unified.append(0)
+    #         continue
+    #     unified.append(1/sum)
     return scores, merged.keys()
 
 def lasso(rssi:list, rps:dict) -> tuple[list, list]:
@@ -102,5 +102,5 @@ def est2loc(est:list, loc_ref:list):
     locProb.sort(reverse = True,
                  key = lambda x: x[1])
     # debug(locProb)
-    genPrint = lambda x: "{}({})".format(x[0], x[1])
-    return " ".join([genPrint(x) for x in locProb[:4]])
+    genPrint = lambda x: "{}({:.2f})".format(x[0], x[1])
+    return " ".join([genPrint(x) for x in locProb[:8]])

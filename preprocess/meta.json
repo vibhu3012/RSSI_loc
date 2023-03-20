@@ -1,6 +1,6 @@
 {
     "num_of_ap": 953,
-    "num_of_records": 2320,
+    "num_of_records": 2252,
     "ap_list": [
         "00:1f:f3:c2:67:9f",
         "00:54:af:63:a0:c7",
@@ -958,7 +958,7 @@
     ],
     "demo": {
         "room.pointIndex.orientation.timestamp.random": "list_of_rssi",
-        "B7.1.north.1674507393.zjg0b": [
+        "B7.1.north.1674507393.kxy97": [
             null,
             null,
             null,

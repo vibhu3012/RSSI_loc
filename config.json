@@ -2,16 +2,17 @@
     "PLATFORM" : "simulation",
 
     "SRC_PATH" : "preprocess/",
-    "RP_PKL" : "RPs.pkl",
+    "RP_PKL" : "train.pkl",
     "RP_META" : "meta.json",
     "RP_LOCATION" : "location.json",
     "PRE_CLUSTERED" : "cluster.json",
     
-    "SAMPLE_INTERVAL" : 0,
-    "LOC_INTERVAL": 2,
+    "SAMPLE_INTERVAL" : 1,
+    "SAMPLE_FILE" : "preprocess/test.pkl", 
+    "LOC_INTERVAL": 0,
 
     "RP_CLUSTER_ALG" : "mono",
     "COARSE_LOC_ALG" : "useall",
     "AP_SELECT_ALG" : "naive",
-    "DISCRETE_ALG" : "prob"
+    "DISCRETE_ALG" : "all"
 }
