@@ -39,9 +39,17 @@ def RPClustering(d, ap_list, conf):
     for direction in DIRECTIONS:
         arr = np.ndarray((len(AP_LIST), len(RP_MAP), TIMESTEPS), dtype = np.float16)
         for key in RP_MAP:
+            print(key + '.' + direction)
             cols = [x for x in df.columns if key + '.' + direction in x]
-            temp = df[cols].to_numpy()
+            if len(cols) == 0:
+                temp = np.full((len(AP_LIST) , TIMESTEPS) , fill_value=np.nan, dtype=np.float16)
+            elif 0 < len(cols) < TIMESTEPS:
+                print(df[cols].to_numpy().shape, np.full((len(AP_LIST) , TIMESTEPS - len(cols)) , fill_value=np.nan, dtype=np.float16).shape)
+                temp = np.concatenate((df[cols].to_numpy() , np.full((len(AP_LIST) , TIMESTEPS - len(cols)) , fill_value=np.nan, dtype=np.float16)), axis = 1)
+            else:
+                temp = df[cols].to_numpy()
             arr[:,RP_MAP[key],:] = temp 
+
         radio_map[direction] = arr
     
     I = {}
@@ -104,6 +112,7 @@ def RPClustering(d, ap_list, conf):
             stabilities = delta[direction][cluster]
             CH[direction][k] = set([cluster[np.argmin(stabilities)]])
             FL[direction][k] = temp - CH[direction][k]
+            
     
     clusters = {}
     for temp_dir in DIRECTIONS:
@@ -111,14 +120,6 @@ def RPClustering(d, ap_list, conf):
         for key in range(len(CH[temp_dir])):
             temp[INV_RP_MAP[list(CH[temp_dir][key])[0]]] = set([INV_RP_MAP[x] for x in FL[temp_dir][key]])
         clusters[temp_dir] = temp
-
-    # final  = {}
-
-    # for direction in DIRECTIONS:
-    #     temp = clusters[direction]
-    #     new = {}
-    #     for key in temp.keys():
-    #         values = set([INV_RP_MAP[x] for x in temp[key]])
 
     return clusters
 
