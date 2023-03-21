@@ -22,7 +22,7 @@ def estimator(rssi:list, rps:dict, alg:str) -> tuple[list, list]:
 def merge(rps):
     # merge the last DoF 
     merged = {}
-    getLoc = lambda x: ".".join(x.split(".")[0:3])
+    getLoc = lambda x: ".".join(x.split(".")[0:2])
     for label in rps.keys():
         loc = getLoc(label)
         rssi_value = rps[label]
@@ -103,4 +103,4 @@ def est2loc(est:list, loc_ref:list):
                  key = lambda x: x[1])
     # debug(locProb)
     genPrint = lambda x: "{}({:.2f})".format(x[0], x[1])
-    return " ".join([genPrint(x) for x in locProb[:8]])
+    return " ".join([genPrint(x) for x in locProb[:5]])
