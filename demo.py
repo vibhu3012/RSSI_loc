@@ -56,6 +56,10 @@ def rssi_sampler():
 sample_thread = Thread(target=rssi_sampler, daemon=True)
 sample_thread.start()
 
+info("Test availability of rssi sampler ...")
+sampler(conf["PLATFORM"], conf["SAMPLE_FILE"])
+info("Test done")
+
 # pipeline starts here ===================================
 while True:
     if not rssi_buf:
