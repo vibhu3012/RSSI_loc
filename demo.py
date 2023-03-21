@@ -29,7 +29,7 @@ try:
     with open(conf["SRC_PATH"] + conf["PRE_CLUSTERED"], "r") as clf:
         clustering = json.load(clf)
 except FileNotFoundError:
-    clustering = cluster(all_rps, alg=conf["RP_CLUSTER_ALG"])
+    clustering = cluster(all_rps, all_ap, conf)
     with open(conf["SRC_PATH"] + conf["PRE_CLUSTERED"], "w+") as clf:
         json.dump(clustering, clf)
 

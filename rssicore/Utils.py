@@ -18,6 +18,8 @@ class ENCODING:
         # coarse localization
         USEALL = "useall"
 
+        TRAD = 'traditional'
+
         # estimator
         KNN = "knn"
         PROB = "prob"

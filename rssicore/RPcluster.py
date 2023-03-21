@@ -1,8 +1,10 @@
 from rssicore.Utils import ENCODING
 
-def cluster(rps:dict, alg:str) -> dict:
-    if alg == ENCODING.ALG.MONO:
+def cluster(rps:dict, ap_list:list, conf:dict) -> dict:
+    if conf["RP_CLUSTER_ALG"] == ENCODING.ALG.MONO:
         return monoClustering(rps)
+    elif conf["RP_CLUSTER_ALG"] == ENCODING.ALG.TRAD:
+        return RPClustering(rps, ap_list, conf)
     raise ValueError
 
 
@@ -112,7 +114,7 @@ def RPClustering(d, ap_list, conf):
             stabilities = delta[direction][cluster]
             CH[direction][k] = set([cluster[np.argmin(stabilities)]])
             FL[direction][k] = temp - CH[direction][k]
-            
+
     
     clusters = {}
     for temp_dir in DIRECTIONS:
