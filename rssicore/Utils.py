@@ -1,5 +1,6 @@
 from rssicore import *
 from math import sqrt
+from numpy import count_nonzero
 
 class ENCODING:
 
@@ -38,4 +39,15 @@ def distance(a, b):
     for i, j in zip(a,b):
         ret += (wrapper(i) - wrapper(j)) ** 2
     return sqrt(ret)
+
+def find_nth(haystack, needle, n):
+    start = haystack.find(needle)
+    while start >= 0 and n > 1:
+        start = haystack.find(needle, start+len(needle))
+        n -= 1
+    return start
+
+def hamming(a, b, LAMBDA):
+    return 1 / (count_nonzero(a!=b) + LAMBDA)
+
     
