@@ -123,7 +123,7 @@ def RPClustering(d, ap_list, conf):
             temp[INV_RP_MAP[list(CH[temp_dir][key])[0]]] = set([INV_RP_MAP[x] for x in FL[temp_dir][key]])
         clusters[temp_dir] = temp
 
-    return clusters
+    return {'clusters' : clusters, 'sparse' : I, 'rp_map' : RP_MAP}
 
 
 def monoClustering(rps) -> dict:
