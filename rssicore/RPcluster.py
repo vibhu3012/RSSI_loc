@@ -117,15 +117,34 @@ def RPClustering(d, ap_list, conf):
             CH[direction][k] = set([cluster[np.argmin(stabilities)]])
             FL[direction][k] = temp - CH[direction][k]
 
-    
     clusters = {}
-    for temp_dir in DIRECTIONS:
+    for dir in DIRECTIONS:
         temp = {}
-        for key in range(len(CH[temp_dir])):
-            temp[INV_RP_MAP[list(CH[temp_dir][key])[0]]] = set([INV_RP_MAP[x] for x in FL[temp_dir][key]])
-        clusters[temp_dir] = temp
+        for k in CH[direction]:
+            temp[list(CH[direction][k])[0]] = FL[direction][k]
+        clusters[dir] = temp
 
-    return {'clusters' : clusters, 'sparse' : I, 'radio_map' : radio_map, 'rp_map' : RP_MAP}
+
+
+    edgenodes = collections.defaultdict(lambda : collections.defaultdict(set))
+    for dir in DIRECTIONS:
+        cl = clusters[direction]
+        for ch , fl in cl.items():
+            for f in fl:
+                edgenodes[dir][f].add(ch)
+
+        for key in edgenodes[dir]:
+            if len(edgenodes[dir][key]) < 2:
+                del edgenodes[dir][key]
+    
+    # clusters = {}
+    # for temp_dir in DIRECTIONS:
+    #     temp = {}
+    #     for key in range(len(CH[temp_dir])):
+    #         temp[INV_RP_MAP[list(CH[temp_dir][key])[0]]] = set([INV_RP_MAP[x] for x in FL[temp_dir][key]])
+    #     clusters[temp_dir] = temp
+
+    return {'clusters' : clusters, 'sparse' : I, 'radio_map' : psi, 'inv_rp_map' : INV_RP_MAP, 'edgenodes' : edgenodes}
 
 
 def monoClustering(rps) -> dict:
@@ -153,28 +172,38 @@ def clusterLoc(rssi , clustering, conf):
     rssi = np.array(rssi, dtype=np.float16)
     rssi_I = (rssi > GAMMA).astype(int)
 
-    max_sim = collections.defaultdict(lambda : -float('inf'))
-    select = {}
+    max_sim = collections.defaultdict(set)
+    select = {} # Must be of the form {RP_name : RSSI}
 
     for dir in DIRECTIONS:
-        clusters = clustering['clusters'][dir]
+        maximum = -float('inf')
+        clusters = clustering['clusters'][dir] #{CH : set(FLs)}
         I = clustering['sparse'][dir]
-        rp_map = clustering['rp_map']
-        radio_map = clustering['radio_map']
+        inv_rp_map = clustering['inv_rp_map']
+        radio_map = clustering['radio_map'][dir]
+        edgenodes = clustering['edgenodes'][dir]
 
-        centroids = [rp_map[x] for x in clusters.keys()]
+        for cluster in clusters:
+            _I = I[:, cluster]
+            sim = hamming(_I , rssi_I)
+            if sim > maximum:
+                max_sim[dir] = set(cluster) | clusters[cluster]
+                maximum = sim
 
-        for centroid in centroids:
-            similarity = hamming(I[centroid] , rssi_I)
-            if similarity > max_sim[dir]:
-                max_sim[dir] = centroid
+        temp = set()
+        for element in max_sim[dir]:
+            if element in edgenodes:
+                temp = temp | edgenodes[element]
 
+        for element in temp:
+            max_sim[dir] = max_sim[dir] | set(element) | clusters[element]
 
-                
+    for dir in DIRECTIONS:
+        maxi = max_sim[dir]
+        for element in maxi:
+            select[inv_rp_map[element]] = list(radio_map[:,element])
 
-
-
-    return
+    return select
 
 def useall(rps) -> dict:
     '''
