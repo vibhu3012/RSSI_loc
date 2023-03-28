@@ -19,6 +19,7 @@ class ENCODING:
         USEALL = "useall"
 
         TRAD = 'traditional'
+        COARSE = 'coarse'
 
         # estimator
         KNN = "knn"
