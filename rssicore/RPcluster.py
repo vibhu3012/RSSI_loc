@@ -1,4 +1,7 @@
 from rssicore.Utils import ENCODING
+import numpy as np
+from rssicore.Utils import find_nth, hamming
+import collections
 
 def cluster(rps:dict, ap_list:list, conf:dict) -> dict:
     if conf["RP_CLUSTER_ALG"] == ENCODING.ALG.MONO:
@@ -19,7 +22,6 @@ def RPClustering(d, ap_list, conf):
 
     import pandas as pd
     from rssicore.Utils import find_nth, hamming
-    import numpy as np
     import collections
 
     AP_LIST = ap_list
@@ -123,7 +125,7 @@ def RPClustering(d, ap_list, conf):
             temp[INV_RP_MAP[list(CH[temp_dir][key])[0]]] = set([INV_RP_MAP[x] for x in FL[temp_dir][key]])
         clusters[temp_dir] = temp
 
-    return {'clusters' : clusters, 'sparse' : I, 'rp_map' : RP_MAP}
+    return {'clusters' : clusters, 'sparse' : I, 'radio_map' : radio_map, 'rp_map' : RP_MAP}
 
 
 def monoClustering(rps) -> dict:
@@ -135,10 +137,44 @@ def monoClustering(rps) -> dict:
     return {head : member}
 
 
-def coarseLoc(rssi:list, rps:dict, clustering:dict, alg:str) -> dict:
+def coarseLoc(rssi:list, rps:dict, clustering:dict, alg:str, conf) -> dict:
     if alg == ENCODING.ALG.USEALL:
         return useall(rps)
+    
+    if alg == ENCODING.ALG.COARSE:
+        return clusterLoc(rssi, clustering, conf)
+    
     raise ValueError
+
+def clusterLoc(rssi , clustering, conf):
+    GAMMA = -80
+    DIRECTIONS =  ['north', 'south', 'east', 'west']
+
+    rssi = np.array(rssi, dtype=np.float16)
+    rssi_I = (rssi > GAMMA).astype(int)
+
+    max_sim = collections.defaultdict(lambda : -float('inf'))
+    select = {}
+
+    for dir in DIRECTIONS:
+        clusters = clustering['clusters'][dir]
+        I = clustering['sparse'][dir]
+        rp_map = clustering['rp_map']
+        radio_map = clustering['radio_map']
+
+        centroids = [rp_map[x] for x in clusters.keys()]
+
+        for centroid in centroids:
+            similarity = hamming(I[centroid] , rssi_I)
+            if similarity > max_sim[dir]:
+                max_sim[dir] = centroid
+
+
+                
+
+
+
+    return
 
 def useall(rps) -> dict:
     '''
