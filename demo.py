@@ -74,7 +74,7 @@ while True:
     roi_rps = coarseLoc(rssi=rssi, 
                         rps=all_rps,
                         clustering=clustering,
-                        alg=conf['COARSE_LOC_ALG'])
+                        alg=conf['COARSE_LOC_ALG'], conf = conf)
 
     # binary filter
     ap_filter = genFilter(rssi=rssi,
