@@ -43,18 +43,17 @@ def RPClustering(d, ap_list, conf):
     for direction in DIRECTIONS:
         arr = np.ndarray((len(AP_LIST), len(RP_MAP), TIMESTEPS), dtype = np.float16)
         for key in RP_MAP:
-            print(key + '.' + direction)
             cols = [x for x in df.columns if key + '.' + direction in x]
             if len(cols) == 0:
                 temp = np.full((len(AP_LIST) , TIMESTEPS) , fill_value=np.nan, dtype=np.float16)
             elif 0 < len(cols) < TIMESTEPS:
-                print(df[cols].to_numpy().shape, np.full((len(AP_LIST) , TIMESTEPS - len(cols)) , fill_value=np.nan, dtype=np.float16).shape)
+                # print(df[cols].to_numpy().shape, np.full((len(AP_LIST) , TIMESTEPS - len(cols)) , fill_value=np.nan, dtype=np.float16).shape)
                 temp = np.concatenate((df[cols].to_numpy() , np.full((len(AP_LIST) , TIMESTEPS - len(cols)) , fill_value=np.nan, dtype=np.float16)), axis = 1)
             else:
                 temp = df[cols].to_numpy()
             arr[:,RP_MAP[key],:] = temp 
 
-        radio_map[direction] = arr
+        radio_map[direction] = np.nan_to_num(arr , nan=-100.0)
     
     I = {}
     for direction in DIRECTIONS:
@@ -68,7 +67,7 @@ def RPClustering(d, ap_list, conf):
         _I = I[direction]
         for i in range(len(RP_MAP)):
             for j in range(len(RP_MAP)):
-                _S[i][j] = hamming(_I[:, i] , _I[:, j])
+                _S[i][j] = hamming(_I[:, i] , _I[:, j], LAMBDA)
         S[direction] = _S
 
 
@@ -79,7 +78,7 @@ def RPClustering(d, ap_list, conf):
         psi[direction] = _psi
         # print(_psi.shape)
         _delta = np.sum((radio_map[direction] - _psi[:, :, np.newaxis]) ** 2 , axis = 2) / (TIMESTEPS-1)
-        _delta = np.sum(np.nan_to_num(_delta) * I[direction] , axis = 0) * (1 / (np.sum(I[direction] , axis = 0)))
+        _delta = np.sum(_delta * I[direction] , axis = 0) * (1 / (np.sum(I[direction] , axis = 0) + LAMBDA))
         # print(_delta)
         delta[direction] = _delta
 
@@ -87,7 +86,9 @@ def RPClustering(d, ap_list, conf):
 
     CH = collections.defaultdict(lambda : collections.defaultdict(set))
     FL = collections.defaultdict(lambda : collections.defaultdict(set))
+
     for direction in DIRECTIONS:
+        # print(direction , '##################################')
         B = set([i for i in range(len(RP_MAP))])
         Bprime = set([i for i in range(len(RP_MAP))])
         edgeset = set()
@@ -98,6 +99,8 @@ def RPClustering(d, ap_list, conf):
             k += 1
             fl = set()
             node = B.pop()
+
+            # print('Candidate : ' , INV_RP_MAP[node])
             for j in Bprime:
                 if j != node and _S[j,node] >= ETA:
                     fl.add(j)
@@ -105,6 +108,7 @@ def RPClustering(d, ap_list, conf):
                         visited.add(j)
                     else:
                         edgeset.add(j)
+            # pprint([INV_RP_MAP[x] for x in fl])
             B = B - fl
             CH[direction][k] = set([node])
             FL[direction][k] = fl
@@ -124,18 +128,19 @@ def RPClustering(d, ap_list, conf):
             temp[list(CH[direction][k])[0]] = FL[direction][k]
         clusters[dir] = temp
 
-
-
     edgenodes = collections.defaultdict(lambda : collections.defaultdict(set))
     for dir in DIRECTIONS:
-        cl = clusters[direction]
+        cl = clusters[dir]
+        temp = collections.defaultdict(set)
         for ch , fl in cl.items():
             for f in fl:
-                edgenodes[dir][f].add(ch)
+                temp[f].add(ch)
+                if len(temp[f])>1:
+                    edgenodes[dir][f] = temp[f]
 
-        for key in edgenodes[dir]:
-            if len(edgenodes[dir][key]) < 2:
-                del edgenodes[dir][key]
+        # for key in edgenodes[dir]:
+        #     if len(edgenodes[dir][key]) < 2:
+        #         del edgenodes[dir][key]
     
     # clusters = {}
     # for temp_dir in DIRECTIONS:
@@ -168,6 +173,7 @@ def coarseLoc(rssi:list, rps:dict, clustering:dict, alg:str, conf) -> dict:
 def clusterLoc(rssi , clustering, conf):
     GAMMA = -80
     DIRECTIONS =  ['north', 'south', 'east', 'west']
+    LAMBDA = 1 / 1000
 
     rssi = np.array(rssi, dtype=np.float16)
     rssi_I = (rssi > GAMMA).astype(int)
@@ -185,7 +191,7 @@ def clusterLoc(rssi , clustering, conf):
 
         carr = np.array(clusters.keys())
         _I = I[:, carr]
-        sim = np.array([hamming(_I[:, i] , rssi_I) for i in range(len(_I))])
+        sim = np.array([hamming(_I[:, i] , rssi_I, LAMBDA) for i in range(len(_I))])
         pos = np.argmax(sim , 0)
         max_sim[dir] = set(carr[pos]) | clusters[carr[pos]]
 

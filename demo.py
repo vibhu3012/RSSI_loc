@@ -5,8 +5,9 @@ from rssicore import * # logging
 from rssicore.RPcluster import cluster, coarseLoc
 from rssicore.APselector import genFilter, aligner, applyFilter
 from rssicore.Sampler import sampler
-from rssicore.Estimate import estimator, est2loc
+# from rssicore.Estimate import estimator, est2loc
 from rssicore.Utils import ENCODING
+from pprint import pprint
 
 if len(sys.argv) < 2:
     print("plz specify config file")
@@ -30,8 +31,8 @@ try:
         clustering = json.load(clf)
 except FileNotFoundError:
     clustering = cluster(all_rps, all_ap, conf)
-    with open(conf["SRC_PATH"] + conf["PRE_CLUSTERED"], "w+") as clf:
-        json.dump(clustering, clf)
+    # with open(conf["SRC_PATH"] + conf["PRE_CLUSTERED"], "w+") as clf:
+    #     json.dump(clustering, clf)
 
 rssi_buf = None
 rssi_label = None
@@ -52,6 +53,9 @@ def rssi_sampler():
             rssi_label = label
             timestamp = time.localtime()
         time.sleep(conf["SAMPLE_INTERVAL"])
+
+# pprint(clustering)
+# exit()
 
 sample_thread = Thread(target=rssi_sampler, daemon=True)
 sample_thread.start()
