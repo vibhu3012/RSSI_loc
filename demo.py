@@ -25,7 +25,6 @@ with open(conf["SRC_PATH"] + conf["RP_META"], "r") as mf:
 
 with open(conf["SRC_PATH"] + conf["RP_PKL"], "rb") as rpf:
     all_rps = pickle.load(rpf) # rp_db is too large hence should use pickle instead of json
-
 try:
     with open(conf["SRC_PATH"] + conf["PRE_CLUSTERED"], "r") as clf:
         clustering = json.load(clf)
@@ -62,7 +61,7 @@ sample_thread.start()
 
 # pipeline starts here ===================================
 i = 0
-while i < 3:
+while i < 10:
     print('##############################################################')
     if not rssi_buf:
         warning("empty rssi fetched")
@@ -113,4 +112,4 @@ while i < 3:
     time.sleep(conf["LOC_INTERVAL"])
     i += 1
 
-# eof pipeline ===========================================
+# eof pipeline ==========================================
