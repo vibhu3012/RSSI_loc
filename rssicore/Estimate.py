@@ -5,7 +5,7 @@ from scipy.stats import norm
 import scipy.stats as stats
 from math import log, exp
 
-def estimator(rssi:list, rps:dict, alg:str) -> tuple[list, list]:
+def estimator(rssi:list, rps:dict, alg:str):
     """
     : return a list with the same length as ref
     : the probability of prediction estimation
@@ -37,7 +37,7 @@ def merge(rps):
                 merged[loc].append([ap])
     return merged
 
-def KNN(rssi:list, rps:dict, k:int = 4) -> tuple[list, list]:
+def KNN(rssi:list, rps:dict, k:int = 4):
 
     # merge the last DoF 
     merged = merge(rps)
@@ -52,7 +52,7 @@ def KNN(rssi:list, rps:dict, k:int = 4) -> tuple[list, list]:
 
     return dist.values(), dist.keys()
 
-def prob(rssi:list, rps:dict) -> tuple[list,list]:
+def prob(rssi:list, rps:dict):
 
     # merge the last DoF 
     merged = merge(rps)
@@ -92,7 +92,7 @@ def prob(rssi:list, rps:dict) -> tuple[list,list]:
     #     unified.append(1/sum)
     return scores, merged.keys()
 
-def lasso(rssi:list, rps:dict) -> tuple[list, list]:
+def lasso(rssi:list, rps:dict):
     print("not implemented")
     raise NotImplementedError
 
