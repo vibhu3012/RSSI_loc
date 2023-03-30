@@ -8,7 +8,7 @@
     "PRE_CLUSTERED" : "cls.json",
     
     "SAMPLE_INTERVAL" : 1,
-    "SAMPLE_FILE" : "preprocess/test.pkl", 
+    "SAMPLE_FILE" : "preprocess/train.pkl", 
     "LOC_INTERVAL": 0,
 
     "RP_CLUSTER_ALG" : "traditional",
