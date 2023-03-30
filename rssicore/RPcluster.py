@@ -189,12 +189,12 @@ def clusterLoc(rssi , clustering, conf):
         radio_map = clustering['radio_map'][dir]
         edgenodes = clustering['edgenodes'][dir]
 
-        carr = np.array(clusters.keys())
+        carr = np.array(list(clusters.keys()))
         _I = I[:, carr]
-        sim = np.array([hamming(_I[:, i] , rssi_I, LAMBDA) for i in range(len(_I))])
+        sim = np.array([hamming(_I[:, i] , rssi_I, LAMBDA) for i in range(_I.shape[1])])
         pos = np.argmax(sim , 0)
-        max_sim[dir] = set(carr[pos]) | clusters[carr[pos]]
-
+        max_sim[dir] = set([carr[pos]]) | clusters[carr[pos]]
+        
         # for cluster in clusters:
         #     _I = I[:, cluster]
         #     sim = hamming(_I , rssi_I)
@@ -203,12 +203,19 @@ def clusterLoc(rssi , clustering, conf):
         #         maximum = sim
 
         temp = max_sim[dir] & set(edgenodes.keys())
+        all_cls = set()
+
         for element in temp:
-            max_sim[dir] |= clusters[element]
+            all_cls |= edgenodes[element]
+
+        for element in all_cls:
+            max_sim[dir] |= (set([element]) | clusters[element])
+        
+        # print('Max: ', max_sim[dir])
 
     for dir in DIRECTIONS:
         for element in max_sim[dir]:
-            select[inv_rp_map[element]] = list(radio_map[:,element])
+            select[inv_rp_map[element] + '.' + dir] = list(radio_map[:,element])
 
     return select
 
