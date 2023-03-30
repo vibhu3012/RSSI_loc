@@ -5,7 +5,7 @@ from rssicore import * # logging
 from rssicore.RPcluster import cluster, coarseLoc
 from rssicore.APselector import genFilter, aligner, applyFilter
 from rssicore.Sampler import sampler
-# from rssicore.Estimate import estimator, est2loc
+from rssicore.Estimate import estimator, est2loc
 from rssicore.Utils import ENCODING
 from pprint import pprint
 
@@ -61,7 +61,9 @@ sample_thread = Thread(target=rssi_sampler, daemon=True)
 sample_thread.start()
 
 # pipeline starts here ===================================
-while True:
+i = 0
+while i < 3:
+    print('##############################################################')
     if not rssi_buf:
         warning("empty rssi fetched")
         time.sleep(conf["LOC_INTERVAL"])
@@ -79,6 +81,11 @@ while True:
                         rps=all_rps,
                         clustering=clustering,
                         alg=conf['COARSE_LOC_ALG'], conf = conf)
+    
+    info("CL done, ROI_RPS_LEN: {} @ {}".format(len(list(roi_rps.keys())), time.strftime("%H:%M:%S", timestamp)))
+    
+    # print(len(list(roi_rps.keys())))
+    # exit()
 
     # binary filter
     ap_filter = genFilter(rssi=rssi,
@@ -104,5 +111,6 @@ while True:
         runEstimation(conf["DISCRETE_ALG"])
 
     time.sleep(conf["LOC_INTERVAL"])
+    i += 1
 
 # eof pipeline ===========================================
