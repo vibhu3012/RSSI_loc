@@ -53,9 +53,12 @@
 
 #### iii. Quick Start
 
-- Sample and label WiFi RSSI data with `sampling_util/` , read `sampling_util/README.md` for guidance.
+##### For offline phase: building reference points dataset:
 
+- Sample and label WiFi RSSI data using `sampling_util/` , read `sampling_util/README.md` for guidance.
 - Process sampled json files using `preprocess/gen_lib.ipynb` , you will get `RPs.pkl` as reference points dataset and `meta.json` as AP index for fingerprint, together with other data.
+
+##### For online phase: perform localization
 
 - Write your own `config.json` specify dataset and other configs.
 
