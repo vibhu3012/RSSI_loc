@@ -53,18 +53,37 @@
 
 #### iii. Quick Start
 
+##### Git clone and python dependency
+
+``` bash
+$ git clone https://github.com/NeutrinoLiu/RSSI_loc.git
+$ pip3 install scipy
+```
+
 ##### For offline phase: building reference points dataset:
 
-- Sample and label WiFi RSSI data using `sampling_util/` , read `sampling_util/README.md` for guidance.
-- Process sampled json files using `preprocess/gen_lib.ipynb` , you will get `RPs.pkl` as reference points dataset and `meta.json` as AP index for fingerprint, together with other data.
+- Sample and label WiFi RSSI data using `sampling_util/` , please refer to [`sampling_util/README.md`](https://github.com/NeutrinoLiu/RSSI_loc/blob/main/sampling_util/README.md) for detailed guidance.
+- Then you should have several json files `*.json` under the directory. Put all those json files into a new directory, let's say `./raw` as an example
+- Open `preprocess/gen_lib.ipynb` with [Jupyter Notebook](https://jupyter.org/) , modify the file directory variable `DIR` to yours (here we use raw directory), like:
+
+  - ```python
+    DIR = '../raw/'
+    RP_FILE = "RPs.pkl"
+    META = "meta.json"
+    ```
+
+    *Don't for get the slash "/" in the end of DIR.* 
+
+  - Run `preprocess/gen_lib.ipynb` within jupyter notebook, you will get `RPs.pkl` as reference points dataset and `meta.json` as AP index for fingerprint, together with other data.
+
 
 ##### For online phase: perform localization
 
 - Write your own `config.json` specify dataset and other configs.
 
-  - ```
+  - ```json
     {
-        "PLATFORM" : "macos",                // macos, linux, or simulation if you want to use file stream
+        "PLATFORM" : "simulation",           // macos, linux, or simulation if you want to use file stream
     
         "SRC_PATH" : "preprocess/",          // path to looking for the followed file
         "RP_PKL" : "RPs.pkl",                // dataset used for reference points
@@ -72,17 +91,18 @@
         "PRE_CLUSTERED" : "cluster.json",    // cluster info, cluster can be perform in advance.
         
         "SAMPLE_INTERVAL" : 0,               // sample interval when perform online localization
-        "SAMPLE_FILE" : "preprocess/test.pkl",  // specify the file name if it is a simulation
+        "SAMPLE_FILE" : "preprocess/test.pkl",  // specify the file name if it is a file stream simulation
         "LOC_INTERVAL": 1,                   // interval when perform localization
     
         "RP_CLUSTER_ALG" : "mono",           // RP cluster algorithm, "mono" means only one whole cluster
         "COARSE_LOC_ALG" : "useall",         // algorithm for coarse localization, i.e. RP selection
         "AP_SELECT_ALG" : "naive",           // algorithm for AP selection
-        "DISCRETE_ALG" : "all"               // algorithm for fine estimation
+        "DISCRETE_ALG" : "all"               // algorithm for fine estimation, 'prob', 'knn', or 'all'
     }
     ```
 
-- `$ python3 demo.py config.json`
+- ```bash
+  $ python3 demo.py config.json
 
 
 
